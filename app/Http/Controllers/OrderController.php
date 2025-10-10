@@ -2,47 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $orders = Order::with('orderItems.product')
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return response()->json($orders);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        return DB::transaction(function () use ($request) {
+            $totalAmount = 0;
+            $orderItems = [];
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            foreach ($request->items as $item) {
+                $product = \App\Models\Product::findOrFail($item['product_id']);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+                if ($product->stock < $item['quantity']) {
+                    return response()->json([
+                        'message' => "Insufficient stock for product: {$product->name}"
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                $unitPrice = $product->price;
+                $subtotal = $unitPrice * $item['quantity'];
+                $totalAmount += $subtotal;
+
+                $orderItems[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                ];
+
+                // Actualizar stock
+                $product->decrement('stock', $item['quantity']);
+            }
+
+            $order = Order::create([
+                'user_id' => $request->user()->id,
+                'total_amount' => $totalAmount,
+                'status' => 'pending',
+            ]);
+
+            foreach ($orderItems as &$item) {
+                $item['order_id'] = $order->id;
+            }
+
+            OrderItem::insert($orderItems);
+
+            return response()->json($order->load('orderItems.product'), Response::HTTP_CREATED);
+        });
     }
 }
