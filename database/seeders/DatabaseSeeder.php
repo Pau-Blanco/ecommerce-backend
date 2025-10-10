@@ -1,23 +1,39 @@
 <?php
 
-namespace Database\Seeders;
-
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Crear usuario administrador
+        User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Crear usuario normal
+        User::create([
+            'name' => 'Customer User',
+            'email' => 'customer@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'customer',
+        ]);
+
+        // Crear 5 categorías
+        $categories = Category::factory()->count(5)->create();
+
+        // Crear 20 productos
+        Product::factory()->count(20)->create([
+            'category_id' => fn() => $categories->random()->id,
         ]);
     }
 }
