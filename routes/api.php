@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders/from-cart', [OrderController::class, 'createFromCart']);
 
     // Solo administradores
     Route::post('/upload', [UploadController::class, 'store']);
