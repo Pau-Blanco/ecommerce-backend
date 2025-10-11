@@ -33,4 +33,20 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function wishlistedBy()
+    {
+        return $this->belongsToMany(User::class, 'wishlists')
+            ->withTimestamps();
+    }
+
+    // Verificar si un producto está en la wishlist del usuario actual
+    public function getIsInWishlistAttribute()
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+
+        return $this->wishlistedBy()->where('user_id', auth()->id())->exists();
+    }
 }
