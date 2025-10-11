@@ -32,6 +32,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
     Route::delete('/cart/clear', [CartController::class, 'clear']);
 
+    // ❤️ Wishlist/Favoritos - NUEVAS RUTAS
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add']);
+    Route::delete('/wishlist/remove/{productId}', [WishlistController::class, 'remove']);
+    Route::post('/wishlist/move-to-cart/{productId}', [WishlistController::class, 'moveToCart']);
+    Route::get('/wishlist/check/{productId}', [WishlistController::class, 'check']);
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clear']);
+
+    // 📦 Órdenes
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::post('/orders/from-cart', [OrderController::class, 'createFromCart']);
