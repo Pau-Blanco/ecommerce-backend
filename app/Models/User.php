@@ -72,4 +72,15 @@ class User extends Authenticatable
         }
         return $this->getRelation('cart');
     }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function wishlistProducts()
+    {
+        return $this->belongsToMany(Product::class, 'wishlists')
+            ->withTimestamps();
+    }
 }
