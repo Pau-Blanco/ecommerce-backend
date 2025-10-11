@@ -57,4 +57,19 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    // Crear carrito automáticamente si no existe
+    public function getCartAttribute()
+    {
+        if (!$this->relationLoaded('cart')) {
+            $cart = $this->cart()->firstOrCreate([]);
+            $this->setRelation('cart', $cart);
+        }
+        return $this->getRelation('cart');
+    }
 }
