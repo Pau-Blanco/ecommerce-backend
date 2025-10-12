@@ -33,4 +33,38 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function approvedReviews()
+    {
+        return $this->hasMany(Review::class)->approved();
+    }
+
+    // Calcular rating promedio
+    public function getAverageRatingAttribute()
+    {
+        return $this->approvedReviews()->avg('rating') ?: 0;
+    }
+
+    // Contar total de reseñas
+    public function getReviewsCountAttribute()
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    // Verificar si el usuario actual ya reseñó este producto
+    public function getCurrentUserReviewAttribute()
+    {
+        if (!auth()->check()) {
+            return null;
+        }
+
+        return $this->reviews()
+            ->where('user_id', auth()->id())
+            ->first();
+    }
 }
