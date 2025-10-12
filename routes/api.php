@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
@@ -17,6 +18,9 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
+
+Route::get('/products/{productId}/reviews', [ReviewController::class, 'index']);
+Route::get('/products/{productId}/reviews/stats', [ReviewController::class, 'stats']);
 
 // Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
@@ -45,6 +49,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::post('/orders/from-cart', [OrderController::class, 'createFromCart']);
+
+    // Reviews
+    Route::post('/products/{productId}/reviews', [ReviewController::class, 'store']);
+    Route::put('/reviews/{reviewId}', [ReviewController::class, 'update']);
+    Route::delete('/reviews/{reviewId}', [ReviewController::class, 'destroy']);
+    Route::get('/products/{productId}/my-review', [ReviewController::class, 'myReview']);
+    Route::get('/my-reviews', [ReviewController::class, 'myReviews']);
 
     // Solo administradores
     Route::post('/upload', [UploadController::class, 'store']);
