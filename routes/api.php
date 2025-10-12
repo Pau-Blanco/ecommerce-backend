@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/remove/{itemId}', [CartController::class, 'remove']);
     Route::delete('/cart/clear', [CartController::class, 'clear']);
 
-    // ❤️ Wishlist/Favoritos - NUEVAS RUTAS
+    // ❤️ Wishlist/Favoritos
     Route::get('/wishlist', [WishlistController::class, 'index']);
     Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add']);
     Route::delete('/wishlist/remove/{productId}', [WishlistController::class, 'remove']);
