@@ -83,4 +83,19 @@ class User extends Authenticatable
         return $this->belongsToMany(Product::class, 'wishlists')
             ->withTimestamps();
     }
+    
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function hasPurchasedProduct($productId)
+    {
+        return $this->orders()
+            ->whereHas('orderItems', function ($query) use ($productId) {
+                $query->where('product_id', $productId);
+            })
+            ->where('status', 'completed')
+            ->exists();
+    }
 }
