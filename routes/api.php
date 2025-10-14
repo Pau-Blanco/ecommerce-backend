@@ -60,3 +60,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Solo administradores
     Route::post('/upload', [UploadController::class, 'store']);
 });
+
+require __DIR__.'/admin.php';
