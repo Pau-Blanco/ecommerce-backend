@@ -10,14 +10,13 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Verificar que el usuario está autenticado
         if (!auth()->check()) {
             return response()->json([
                 'message' => 'No autenticado. Por favor inicia sesión.'
             ], 401);
         }
 
-        // Verificar que es admin (usando role en lugar de is_admin)
+        // Verificar que es admin (usando el método isAdmin() de tu modelo)
         $user = auth()->user();
         if (!$user->isAdmin()) {
             return response()->json([
