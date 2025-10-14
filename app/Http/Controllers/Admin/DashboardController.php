@@ -34,22 +34,22 @@ class DashboardController extends Controller
         $recentStats = [
             'new_orders' => Order::whereBetween('created_at', [$startDate, $endDate])->count(),
             'new_users' => User::whereBetween('created_at', [$startDate, $endDate])->count(),
+            'new_products' => Product::whereBetween('created_at', [$startDate, $endDate])->count(),
             'recent_revenue' => Order::where('status', 'completed')
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->sum('total_amount'),
         ];
 
         // Órdenes recientes
-        $recent_orders = Order::with(['user:id,name,email', 'orderItems.product:id,name'])
+        $recent_orders = Order::with(['user:id,name,email'])
             ->latest()
             ->take(8)
             ->get()
             ->map(function ($order) {
                 return [
                     'id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'user_name' => $order->user->name,
-                    'user_email' => $order->user->email,
+                    'user_name' => $order->user->name ?? 'Cliente',
+                    'user_email' => $order->user->email ?? 'N/A',
                     'total_amount' => $order->total_amount,
                     'status' => $order->status,
                     'created_at' => $order->created_at->format('Y-m-d H:i'),
@@ -65,10 +65,11 @@ class DashboardController extends Controller
                 'products.name',
                 'products.price',
                 'products.stock',
+                'products.image_url',
                 DB::raw('SUM(order_items.quantity) as total_sold'),
                 DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_revenue')
             )
-            ->groupBy('products.id', 'products.name', 'products.price', 'products.stock')
+            ->groupBy('products.id', 'products.name', 'products.price', 'products.stock', 'products.image_url')
             ->orderBy('total_sold', 'desc')
             ->take(6)
             ->get();
@@ -78,28 +79,7 @@ class DashboardController extends Controller
             ->where('stock', '<', 10)
             ->orderBy('stock', 'asc')
             ->take(5)
-            ->get(['id', 'name', 'stock', 'price', 'category_id']);
-
-        // Ventas mensuales (últimos 6 meses)
-        $monthly_sales = Order::select(
-            DB::raw('YEAR(created_at) as year'),
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('COUNT(*) as order_count'),
-            DB::raw('SUM(total_amount) as total_revenue')
-        )
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->where('status', 'completed')
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'period' => $item->year . '-' . str_pad($item->month, 2, '0', STR_PAD_LEFT),
-                    'order_count' => $item->order_count,
-                    'total_revenue' => $item->total_revenue,
-                ];
-            });
+            ->get(['id', 'name', 'stock', 'price', 'image_url', 'category_id']);
 
         return response()->json([
             'stats' => $stats,
@@ -107,7 +87,6 @@ class DashboardController extends Controller
             'recent_orders' => $recent_orders,
             'top_products' => $top_products,
             'low_stock_products' => $low_stock_products,
-            'monthly_sales' => $monthly_sales,
         ]);
     }
 }

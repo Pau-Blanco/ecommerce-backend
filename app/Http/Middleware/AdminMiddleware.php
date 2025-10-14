@@ -17,12 +17,12 @@ class AdminMiddleware
             ], 401);
         }
 
-        // Verificar que es admin (usando is_admin boolean)
+        // Verificar que es admin (usando role en lugar de is_admin)
         $user = auth()->user();
-        if (!$user->is_admin) {
+        if (!$user->isAdmin()) {
             return response()->json([
                 'message' => 'Acceso denegado. Se requieren permisos de administrador.',
-                'user_role' => 'user'
+                'user_role' => $user->role
             ], 403);
         }
 
