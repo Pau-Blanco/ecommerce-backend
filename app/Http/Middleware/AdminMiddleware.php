@@ -10,10 +10,19 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Verificar que el usuario está autenticado y es admin
-        if (!auth()->check() || !auth()->user()->is_admin) {
+        // Verificar que el usuario está autenticado
+        if (!auth()->check()) {
             return response()->json([
-                'message' => 'No autorizado. Se requieren permisos de administrador.'
+                'message' => 'No autenticado. Por favor inicia sesión.'
+            ], 401);
+        }
+
+        // Verificar que es admin (usando is_admin boolean)
+        $user = auth()->user();
+        if (!$user->is_admin) {
+            return response()->json([
+                'message' => 'Acceso denegado. Se requieren permisos de administrador.',
+                'user_role' => 'user'
             ], 403);
         }
 
